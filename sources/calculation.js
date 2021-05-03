@@ -413,6 +413,41 @@ function basisFuncs(i, t, k, knot_vector, N)
 	return (N);
 }
 
+function surfacePoint(n, p, U, m, q, V, pointsCtr, u, v)
+{
+	let u_span, v_span;
+	let u_ind, v_ind;
+	let surface_point = new Point(0, 0, 0);
+	let N_u, N_v;
+
+	u_span = findSpan(n, p, u, U);
+	N_u = new Array(p + 1);
+	basisFuncs(u_span, u, p, U, N_u);
+
+	v_span = findSpan(m, q, v, V);
+	N_v = new Array(q + 1);
+	basisFuncs(v_span, v, q, V, N_v);
+
+	u_ind = u_span - p;
+	v_ind = v_span - q;
+	for (let l = 0; l <= q; ++l)
+	{
+		let temp = new Point(0, 0, 0);
+		
+		for (let k = 0; k <= p; ++k)
+		{
+			temp.x += N_u[k] * pointsCtr[u_ind + k][v_ind].x;
+			temp.y += N_u[k] * pointsCtr[u_ind + k][v_ind].y;
+			temp.z += N_u[k] * pointsCtr[u_ind + k][v_ind].z;
+		}
+		surface_point.x += N_v[l] * temp.x;
+		surface_point.y += N_v[l] * temp.y;
+		surface_point.z += N_v[l] * temp.z;
+		v_ind++;
+	}
+	return (surface_point);
+}
+
 const Data = {
 	pointsCtr: [],
 	indicesCtr: [],
@@ -1150,8 +1185,7 @@ const Data = {
 
 		let i, j;
 		let p = 2, q = 2;
-		let u_span, q_span;
-		let x, y , z;
+		let x, y, z;
 		let du, dv;
 		let u, v;
 
@@ -1161,6 +1195,17 @@ const Data = {
 		const M = Number(this.M.value);
 		let n = N_ctr - 1;
 		let m = M_ctr - 1;
+
+		// let pointsCtr = new Array
+
+		// for (i = 0; i < N_ctr; ++i)
+		// {
+		// 	for (j = 0; j < N_ctr; ++j)
+		// 	{
+		// 		this.pointsCtr[i][j] = this.pointsCtr[j][i];
+		// 	}
+		// }
+		
 
 		this.pointsSpline = new Array(N);
 		this.normalsSpline = new Array(N);
@@ -1174,22 +1219,22 @@ const Data = {
 
 
 		// calculating the knot vector (U)
-		let U = new Array(N + p + 1);
+		let U = new Array(N_ctr + p + 1);
 		for (i = 0; i <= p; ++i)
 			U[i] = 0;
-		for (i = p + 1; i <= N - 1; ++i)
+		for (i = p + 1; i <= N_ctr - 1; ++i)
 			U[i] = i - p;
-		for (i = N; i <= N + p; ++i)
-			U[i] = N - p;
+		for (i = N_ctr; i <= N_ctr + p; ++i)
+			U[i] = N_ctr - p;
 
 		// calculating the knot vector (V)
-		let V = new Array(M + q + 1);
+		let V = new Array(M_ctr + q + 1);
 		for (i = 0; i <= q; ++i)
 			V[i] = 0;
-		for (i = q + 1; i <= M - 1; ++i)
+		for (i = q + 1; i <= M_ctr - 1; ++i)
 			V[i] = i - q;
-		for (i = M; i <= M + q; ++i)
-			V[i] = M - q;
+		for (i = M_ctr; i <= M_ctr + q; ++i)
+			V[i] = M_ctr - q;
 
 		du = (U[U.length - 1] - U[0]) / (N - 1);
 		dv = (V[V.length - 1] - V[0]) / (M - 1);
@@ -1198,8 +1243,9 @@ const Data = {
 		{
 			v = V[0];
 			for (j = 0; j < M; j++)
-			{
-				
+			{	
+				// this.pointsSpline[i][j] = new Point(0, 1.5, 0);
+				this.pointsSpline[i][j] = surfacePoint(N_ctr - 1, p, U, M_ctr - 1, q, V, this.pointsCtr, u, v);
 
 				// const x_v = d_p0_v.x * (1 - omega) + d_p1_v.x * omega;
 				// const y_v = d_p0_v.y * (1 - omega) + d_p1_v.y * omega;
