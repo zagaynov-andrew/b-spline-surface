@@ -98,13 +98,12 @@ function main() {
 	const M_ctr = document.getElementById("M_ctr");
 	const N = document.getElementById("N");
 	const M = document.getElementById("M");
+	const p = document.getElementById("p");
+	const q = document.getElementById("q");
 	const alpha = document.getElementById("alpha");
-	const uniform = document.getElementById("uniform");
-	const chordal = document.getElementById("chordal");
-	const centripetal = document.getElementById("centripetal");
 
 	Data.init(gl, viewport, eval(Xmin.value), eval(Xmax.value), eval(Ymin.value), eval(Ymax.value), eval(Z.value),
-		N_ctr, M_ctr, N, M, uniform, chordal, centripetal, alpha);
+		N_ctr, M_ctr, N, M, p, q, alpha);
 
 	canvas.onmousemove = function (ev) { mousemove(ev, canvas); };
 
@@ -179,10 +178,9 @@ function main() {
 	};
 	N.onchange = function () { Data.plotMode(2); };
 	M.onchange = function () { Data.plotMode(2); };
+	p.onchange = function () { Data.plotMode(2); };
+	q.onchange = function () { Data.plotMode(2); };
 	alpha.onchange = function () { Data.plotMode(0); };
-	uniform.onclick = function () { Data.plotMode(2); };
-	chordal.onclick = function () { Data.plotMode(2); };
-	centripetal.onclick = function () { Data.plotMode(2); };
 	controlPolygon.onclick = function () { Data.plotMode(3); };
 
 	gl.depthFunc(gl.LEQUAL);
@@ -497,13 +495,12 @@ const Data = {
 	visualizeSplineWithPoints: true,
 	visualizeSplineWithLines: false,
 	visualizeSplineWithSurface: false,
-	uniform: null,
-	chordal: null,
-	centripetal: null,
 	N_ctr: null,
 	M_ctr: null,
 	N: null,
 	M: null,
+	p: null,
+	q: null,
 	alpha: null,
 	Xmid: 0.0,
 	Ymid: 0.0,
@@ -518,7 +515,7 @@ const Data = {
 	lastPosY: 0,
 	nLongitudes: 0,
 	nLatitudes: 0,
-	init: function (gl, viewport, Xmin, Xmax, Ymin, Ymax, Z, N_ctr, M_ctr, N, M, uniform, chordal, centripetal, alpha) {
+	init: function (gl, viewport, Xmin, Xmax, Ymin, Ymax, Z, N_ctr, M_ctr, N, M, p, q, alpha) {
 		this.gl = gl;
 		
 		this.verticesAxes = new Float32Array(18); // 6 points * 3 coordinates
@@ -688,9 +685,8 @@ const Data = {
 		this.M_ctr = M_ctr;
 		this.N = N;
 		this.M = M;
-		this.uniform = uniform;
-		this.chordal = chordal;
-		this.centripetal = centripetal;
+		this.p = p;
+		this.q = q;
 		this.alpha = alpha;
 
 		this.setDependentGeomParameters(Xmin, Xmax, Ymin, Ymax, Z);
@@ -1184,7 +1180,6 @@ const Data = {
 	calculateLineSurfaceSpline: function () {
 
 		let i, j;
-		let p = 2, q = 2;
 		let x, y, z;
 		let du, dv;
 		let u, v;
@@ -1193,6 +1188,8 @@ const Data = {
 		const M_ctr = Number(this.M_ctr.value);
 		const N = Number(this.N.value);
 		const M = Number(this.M.value);
+		const p = Number(this.p.value);
+		const q = Number(this.q.value);
 		let n = N_ctr - 1;
 		let m = M_ctr - 1;
 
