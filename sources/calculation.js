@@ -1179,41 +1179,26 @@ const Data = {
 	},
 	calculateLineSurfaceSpline: function () {
 
-		let i, j;
-		let x, y, z;
-		let du, dv;
-		let u, v;
+		let i,	j;
+		let u,	v;
+		let du,	dv;
 
-		const N_ctr = Number(this.N_ctr.value);
-		const M_ctr = Number(this.M_ctr.value);
-		const N = Number(this.N.value);
-		const M = Number(this.M.value);
-		const p = Number(this.p.value);
-		const q = Number(this.q.value);
-		let n = N_ctr - 1;
-		let m = M_ctr - 1;
+		const N_ctr	= Number(this.N_ctr.value);
+		const M_ctr	= Number(this.M_ctr.value);
+		const N		= Number(this.N.value);
+		const M		= Number(this.M.value);
+		const p		= Number(this.p.value);
+		const q		= Number(this.q.value);
 
-		// let pointsCtr = new Array
-
-		// for (i = 0; i < N_ctr; ++i)
-		// {
-		// 	for (j = 0; j < N_ctr; ++j)
-		// 	{
-		// 		this.pointsCtr[i][j] = this.pointsCtr[j][i];
-		// 	}
-		// }
-		
-
-		this.pointsSpline = new Array(N);
-		this.normalsSpline = new Array(N);
-		for (i = 0; i < N; i++) {
+		this.pointsSpline	= new Array(N);
+		this.normalsSpline	= new Array(N);
+		for (i = 0; i < N; i++)
+		{
 			this.pointsSpline[i] = new Array(M);
 			this.normalsSpline[i] = new Array(M);
 			for (j = 0; j < M; j++)
 				this.normalsSpline[i][j] = new Array(3);
 		}
-
-
 
 		// calculating the knot vector (U)
 		let U = new Array(N_ctr + p + 1);
@@ -1241,7 +1226,6 @@ const Data = {
 			v = V[0];
 			for (j = 0; j < M; j++)
 			{	
-				// this.pointsSpline[i][j] = new Point(0, 1.5, 0);
 				this.pointsSpline[i][j] = surfacePoint(N_ctr - 1, p, U, M_ctr - 1, q, V, this.pointsCtr, u, v);
 
 				// const x_v = d_p0_v.x * (1 - omega) + d_p1_v.x * omega;
