@@ -1274,6 +1274,9 @@ const Data = {
 		const p		= Number(this.p.value);
 		const q		= Number(this.q.value);
 
+		if (p >= N_ctr || q >= M_ctr)
+			return ;
+
 		this.pointsSpline	= new Array(N);
 		this.normalsSpline	= new Array(N);
 		for (i = 0; i < N; i++)
