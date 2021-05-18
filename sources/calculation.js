@@ -389,63 +389,6 @@ function findSpan(n, k, t, knot_vector)
 	return mid;
 }
 
-function basisFuncs(i, t, k, knot_vector, N)
-{
-	let left = new Array(k + 1);
-	let right = new Array(k + 1);
-	let saved, temp;
-	N[0] = 1.0;
-	for (let j = 1; j <= k; j++)
-	{
-		left[j] = t - knot_vector[i + 1 - j];
-		right[j] = knot_vector[i + j] - t;
-		saved = 0.0;
-		for (let r = 0; r < j; r++)
-		{
-			temp = N[r] / (right[r + 1] + left[j - r]);
-			N[r] = saved + right[r + 1] * temp;
-			saved = left[j - r] * temp;
-		}
-		N[j] = saved;
-	}
-	return (N);
-}
-
-function surfacePoint(n, p, U, m, q, V, pointsCtr, u, v)
-{
-	let u_span, v_span;
-	let u_ind, v_ind;
-	let surface_point = new Point(0, 0, 0);
-	let N_u, N_v;
-
-	u_span = findSpan(n, p, u, U);
-	N_u = new Array(p + 1);
-	basisFuncs(u_span, u, p, U, N_u);
-
-	v_span = findSpan(m, q, v, V);
-	N_v = new Array(q + 1);
-	basisFuncs(v_span, v, q, V, N_v);
-
-	u_ind = u_span - p;
-	v_ind = v_span - q;
-	for (let l = 0; l <= q; ++l)
-	{
-		let temp = new Point(0, 0, 0);
-		
-		for (let k = 0; k <= p; ++k)
-		{
-			temp.x += N_u[k] * pointsCtr[u_ind + k][v_ind].x;
-			temp.y += N_u[k] * pointsCtr[u_ind + k][v_ind].y;
-			temp.z += N_u[k] * pointsCtr[u_ind + k][v_ind].z;
-		}
-		surface_point.x += N_v[l] * temp.x;
-		surface_point.y += N_v[l] * temp.y;
-		surface_point.z += N_v[l] * temp.z;
-		v_ind++;
-	}
-	return (surface_point);
-}
-
 function dersBasisFuns(i, u, p, n, U, ders)
 {
 	let j1, j2;
@@ -529,10 +472,16 @@ function dersBasisFuns(i, u, p, n, U, ders)
 	}
 }
 
-function surfaceDerivs(n, p, U, m, q, V, pointsCtr, u, v, d)
+function surfaceDerivs(n, p, U, m, q, V, pointsCtr, u, v, d, SKL)
 {
 	let du = Math.min(d, p);
+	for (let k = p + 1; k <= d; k++)
+		for (let l = 0; l <= d - k; l++)
+			SKL[k][l] = 0.0;
 	let dv = Math.min(d, q);
+	for (let l = q + 1; l <= d; l++)
+		for (let k = 0; k <= d - l; k++)
+			SKL[k][l] = 0.0;
 	let u_span = findSpan(n, p, u, U);
 	//------------------------------
 	let N_u = new Array(n + 1);
@@ -547,47 +496,38 @@ function surfaceDerivs(n, p, U, m, q, V, pointsCtr, u, v, d)
 		N_v[i] = new Array(q + 1);
 	//------------------------------
 	dersBasisFuns(v_span, v, q, dv, V, N_v)
-
-
-	let deriv_u = new Point(0, 0, 0);
-	let deriv_v = new Point(0, 0, 0);
-
 	let temp = new Array(q + 1);
-	for (let s = 0; s <= q; ++s)
+	for (let i = 0; i < q + 1; ++i)
+		temp[i] = new Point;
+	for (let i = 0; i <= d; ++i)
+		for (let j = 0; j <= d; ++j)
+			SKL[i][j] = 0.0;
+	for (let k = 0; k <= du; k++)
 	{
-		temp[s] = new Point(0, 0, 0);
-		for (let r = 0; r <= p; ++r)
+		for (let s = 0; s <= q; s++)
 		{
-			temp[s].x += N_u[1][r] * pointsCtr[u_span - p + r][v_span - q + s].x;
-			temp[s].y += N_u[1][r] * pointsCtr[u_span - p + r][v_span - q + s].y;
-			temp[s].z += N_u[1][r] * pointsCtr[u_span - p + r][v_span - q + s].z;
+			temp[s].x = 0.;
+			temp[s].y = 0.;
+			temp[s].z = 0.;
+			for (let r = 0; r <= p; r++)
+			{
+				temp[s].x += N_u[k][r] * pointsCtr[u_span - p + r][v_span - q + s].x;
+				temp[s].y += N_u[k][r] * pointsCtr[u_span - p + r][v_span - q + s].y;
+				temp[s].z += N_u[k][r] * pointsCtr[u_span - p + r][v_span - q + s].z;
+			}
+		}
+		let dd = Math.min(d - k, dv);
+		for (let l = 0; l <= dd; l++)
+		{
+			SKL[k][l] = new Point(0, 0, 0);
+			for (let s = 0; s <= q; s++)
+			{
+				SKL[k][l].x += N_v[l][s] * temp[s].x;
+				SKL[k][l].y += N_v[l][s] * temp[s].y;
+				SKL[k][l].z += N_v[l][s] * temp[s].z;
+			}
 		}
 	}
-	for (let i = 0; i <= q; ++i)
-	{
-		deriv_u.x += N_v[0][i] * temp[i].x;
-		deriv_u.y += N_v[0][i] * temp[i].y;
-		deriv_u.z += N_v[0][i] * temp[i].z;
-	}
-
-	temp = new Array(q + 1);
-	for (let s = 0; s <= q; ++s)
-	{
-		temp[s] = new Point(0, 0, 0);
-		for (let r = 0; r <= p; ++r)
-		{
-			temp[s].x += N_u[0][r] * pointsCtr[u_span - p + r][v_span - q + s].x;
-			temp[s].y += N_u[0][r] * pointsCtr[u_span - p + r][v_span - q + s].y;
-			temp[s].z += N_u[0][r] * pointsCtr[u_span - p + r][v_span - q + s].z;
-		}
-	}
-	for (let i = 0; i <= q; ++i)
-	{
-		deriv_v.x += N_v[1][i] * temp[i].x;
-		deriv_v.y += N_v[1][i] * temp[i].y;
-		deriv_v.z += N_v[1][i] * temp[i].z;
-	}
-	return [deriv_u, deriv_v];
 }
 
 const Data = {
@@ -1365,16 +1305,19 @@ const Data = {
 		du = (U[U.length - 1] - U[0]) / (N - 1);
 		dv = (V[V.length - 1] - V[0]) / (M - 1);
 		u = U[0];
+		let SKL = new Array(2);
+			for (let k = 0; k < 2; ++k)
+				SKL[k] = new Array(2);
 		for (i = 0; i < N; i++)
 		{
 			v = V[0];
 			for (j = 0; j < M; j++)
 			{	
-				this.pointsSpline[i][j] = surfacePoint(N_ctr - 1, p, U, M_ctr - 1, q, V, this.pointsCtr, u, v);
-				let deriv = surfaceDerivs(N_ctr - 1, p, U, M_ctr - 1, q, V, this.pointsCtr, u, v, 2);
+				surfaceDerivs(N_ctr - 1, p, U, M_ctr - 1, q, V, this.pointsCtr, u, v, 1, SKL);
+				this.pointsSpline[i][j] = SKL[0][0];
 
-				const pt_u = vec3.fromValues(deriv[0].x, deriv[0].y, deriv[0].z);
-				const pt_v = vec3.fromValues(deriv[1].x, deriv[1].y, deriv[1].z);
+				const pt_u = vec3.fromValues(SKL[1][0].x, SKL[1][0].y, SKL[1][0].z);
+				const pt_v = vec3.fromValues(SKL[0][1].x, SKL[0][1].y, SKL[0][1].z);
 
 				//CALCULATE NORMAL VECTOR
 				let normal = vec3.create();
