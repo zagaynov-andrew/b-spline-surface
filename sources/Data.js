@@ -262,7 +262,7 @@ const Data = {
             for (let j = 0; j < m; j++) {
                 const x = Xmin + i * (Xmax - Xmin) / (n - 1) - this.Xmid;
                 const y = Ymin + j * (Ymax - Ymin) / (m - 1) - this.Ymid;
-                const z = Z * Math.sin(x) * Math.sin(y);
+                const z = Z * Math.sin(x) * Math.sin(y) * 2;
 
                 this.add_coords(i, j, x, y, z);
             }
