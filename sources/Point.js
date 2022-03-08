@@ -27,7 +27,7 @@ class Point {
         this.winy = winCoord[1];
         this.winz = winCoord[2];
 
-        this.setRect();//create a bounding rectangle around point
+        this.setRect(); //create a bounding rectangle around point
     }
     ptInRect(x, y) {
         const inX = this.left <= x && x <= this.right;
